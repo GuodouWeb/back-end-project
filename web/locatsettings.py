@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import os
 
 
 class Config:
     GUEST = 0
     MANAGER = 1
     ADMIN = 2
+    LOGS_NAME = os.path.abspath(os.curdir)+"\\logs\\log"
 
     @staticmethod
     def get_Sqlsettins():
@@ -18,21 +20,15 @@ class MySqlSettings:
     db = "test_db"
     port = 3306
     charset = 'utf8'
-    cursorclass = ""
-
-    @classmethod
-    def Cursorclass(cls, pymysql_cursors):
-        cls.cursorclass = pymysql_cursors
-        return cls.cursorclass
 
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # 默认
-        'NAME': 'test_db',  # 连接的数据库  #一定要存在的数据库名
-        'HOST': '114.115.164.26',  # mysql的ip地址
-        'PORT': 3306,  # mysql的端口
-        'USER': 'root',  # mysql的用户名
-        'PASSWORD': 'lx!24172024'  # mysql的密码
+        'NAME': MySqlSettings.db,  # 连接的数据库  #一定要存在的数据库名
+        'HOST': MySqlSettings.host,  # mysql的ip地址
+        'PORT': MySqlSettings.port,  # mysql的端口
+        'USER': MySqlSettings.user,  # mysql的用户名
+        'PASSWORD': MySqlSettings.password  # mysql的密码
     }
 }

@@ -1,14 +1,23 @@
 import logbook
 
-from web.middleware.decorator import SingletonDecorator
+from web.locatsettings import Config
+
+
+class SingletonDecorator:
+    def __init__(self, cls):
+        self.cls = cls
+        self.instance = None
+
+    def __call__(self, *args, **kwargs):
+        if self.instance is None:
+            self.instance = self.cls(*args, **kwargs)
+        return self.instance
 
 
 @SingletonDecorator
 class Log(object):
 
-    handler = None
-
-    def __init__(self, name='interfaceAutomation', filename="InterfaceAutomation.config['LOG_NAME']"):
+    def __init__(self, name='Guodou', filename=Config.LOGS_NAME):
         """
 
         :param name: 项目名称
@@ -21,16 +30,16 @@ class Log(object):
 
     def info(self, *arg, **kwargs):
         """返回Log info信息"""
-        return self.logger.info(*arg, **kwargs)
+        self.logger.info(*arg, **kwargs)
 
     def error(self, *arg, **kwargs):
         """返回报错信息"""
-        return self.logger.error(*arg, **kwargs)
+        self.logger.error(*arg, **kwargs)
 
     def warning(self, *arg, **kwargs):
         """返回警告信息"""
-        return self.logger.warning(*arg, **kwargs)
+        self.logger.warning(*arg, **kwargs)
 
     def debug(self, *arg, **kwargs):
         """返回调试信息"""
-        return self.logger.debug(*arg, **kwargs)
+        self.logger.debug(*arg, **kwargs)
