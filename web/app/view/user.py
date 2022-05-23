@@ -11,22 +11,21 @@ from web.locatsettings import Config
 
 def login(request):
     if request.method == 'POST':
+        account = json.loads(request.body)
+        if account.get("username") == "" or account.get("password") == "":
+            return HttpResponse(json.dumps(dict(code=200, msg="账号或密码不为空")))
         msql = MysqlUtility()
         conn, cur = msql.get_conn()
-        account = json.loads(request.body)
         data = msql.select(
             f'select id, username from user where '
             f'username="{account.get("username")}" and password="{account.get("password")}"', cur)
         jwt = UserToken.get_token(data)
         refreshToken = UserToken.add_salt(data.get("username") + str(time.time()))
-        msql.select(
-            f'insert into RefreshToken(token_key,token_value,expiration_time_stamp,username) '
-            f'values("{refreshToken}","{data}",{int(time.time()) + 3600}, "{data.get("username")}");',cur)
-        msql.commit(conn)
+
         msql.close(conn, cur)
         return HttpResponse(json.dumps({'token': jwt, 'data': {'userinfo': data, 'refToken': refreshToken}}),
                             content_type="application/json;charset=UTF-8")
-    return HttpResponse(json.dumps({'code': 404, 'msg': '请求方式问题'}), content_type="application/json;charset"
+    return HttpResponse(json.dumps({'code': 200, 'msg': '请求方式问题'}), content_type="application/json;charset"
                                                                                  "=UTF-8")
 
 
