@@ -7,13 +7,17 @@ from web.uilts.Jwt import UserToken
 FORBIDDEN = "对不起, 你没有足够的权限"
 
 TOKEN_WHITELIST = [
-    '/get/login',
-    '/get/get_userinfo',
-    '/get/ref_token'
+    '/api/login',
+    '/api/user/register',
+    '/api/get_userinfo',
+    '/api/ref_token',
+    '/api/user/login',
+    '/api/request'
 ]
 SESSION_WHITELIST = [
-    '/get/login',
+    '/api/login',
 ]
+
 
 class Permission(MiddlewareMixin):
 
@@ -31,9 +35,6 @@ class Permission(MiddlewareMixin):
             data = request.POST.copy()
             data["user_info"] = user_info
             request.POST = data
-        except :
+        except:
             return HttpResponse(json.dumps({'code': 404, 'msg': "用户信息认证失败"}),
                                 content_type="application/json;charset=UTF-8")
-
-
-

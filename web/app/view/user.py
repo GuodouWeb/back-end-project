@@ -2,31 +2,77 @@
 import json
 import time
 import pymysql
-from web.app.dao.mysql_linkpool import MysqlUtility
+from django.forms import model_to_dict
 from django.http import HttpResponse
+from web.app.models import models
 from web.uilts.Jwt import UserToken
 from web.locatsettings import Config
 
 
 def login(request):
     if request.method == 'POST':
-        account = json.loads(request.body)
-        if account.get("username") == "" or account.get("password") == "":
-            return HttpResponse(json.dumps({'code': 404, 'msg': '账号密码不能为空'}), content_type="application/json;charset"
-                                                                                           "=UTF-8")
-        msql = MysqlUtility()
-        conn, cur = msql.get_conn()
-        data = msql.select(
-            f'select id, username from user where '
-            f'username="{account.get("username")}" and password="{account.get("password")}"', cur)
-        jwt = UserToken.get_token(data)
-        refreshToken = UserToken.add_salt(data.get("username") + str(time.time()))
-        msql.close(conn, cur)
-        return HttpResponse(
-            json.dumps({'code': 200, 'token': jwt, 'data': {'userinfo': data, 'refToken': refreshToken}}),
-            content_type="application/json;charset=UTF-8")
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            data = request.POST
+        if request.headers.get('Content-Type') == 'application/json':
+            data = json.loads(request.body)
+        if data is None:
+            return HttpResponse(json.dumps({'code': 500, 'msg': '无法获取数据'}),
+                                content_type="application/json;charset"
+                                             "=UTF-8")
+        username = data.get('username')
+        password = data.get('password')
+        if username is None or password is None:
+            return HttpResponse(json.dumps({'code': 404, 'msg': '账号密码不能为空'}),
+                                content_type="application/json;charset"
+                                             "=UTF-8")
+        # user_object=models.UserInfo.objects.filter(username=username,password=password).exists()
+        # 手机=phone and pwd=pwd  || email=email and pwd=pwd
+        user_object = models.User.objects.filter(username=username, password=password).first()
+        if user_object:
+            user_info = model_to_dict(user_object)
+            jwt = UserToken.get_token(user_info)
+            refreshToken = UserToken.add_salt(user_object.username + str(time.time()))
+            return HttpResponse(
+                json.dumps({'code': 200, 'token': jwt, 'data': {'userinfo': user_info, 'refToken': refreshToken}}),
+                content_type="application/json;charset=UTF-8")
+
     return HttpResponse(json.dumps({'code': 404, 'msg': '请求方式问题'}), content_type="application/json;charset"
                                                                                  "=UTF-8")
+
+
+def register(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        if data is not None:
+            name = data.get('name')
+            username = data.get('username')
+            password = data.get('password')
+            if username is None or password is None:
+                return HttpResponse(json.dumps({'code': 404, 'msg': '注册的账号密码不能为空'}),
+                                    content_type="application/json;charset"
+                                                 "=UTF-8")
+            user_object = models.User.objects.filter(username=username).first()
+            if user_object:
+                return HttpResponse(json.dumps({'code': 404, 'msg': "用户名已存在"}),
+                                    content_type="application/json;charset=UTF-8")
+            user_object = models.User.objects.create(
+                name=name,
+                username=username,
+                password=password,
+                role=0,
+                login_platform="web",
+                create_time=time.time()
+            )
+            if user_object:
+                user_info = model_to_dict(user_object)
+                jwt = UserToken.get_token(user_info)
+                refreshToken = UserToken.add_salt(user_object.username + str(time.time()))
+                return HttpResponse(
+                    json.dumps({'code': 200, 'token': jwt, 'data': {'userinfo': user_info, 'refToken': refreshToken}}),
+                    content_type="application/json;charset=UTF-8")
+            return HttpResponse(json.dumps({'code': 404, 'msg': '创建账号失败'}),
+                                content_type="application/json;charset"
+                                             "=UTF-8")
 
 
 def userInfo(request):
@@ -34,6 +80,8 @@ def userInfo(request):
         userinfo = UserToken.parse_token(request.headers.get('Token'))
         return HttpResponse(json.dumps({'data': userinfo}), content_type="application/json;charset"
                                                                          "=UTF-8")
+    return HttpResponse(json.dumps({'code': 404, 'msg': '请求方式问题'}), content_type="application/json;charset"
+                                                                                 "=UTF-8")
 
 
 def ref_token(request):

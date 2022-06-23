@@ -43,3 +43,4 @@ class Log(object):
     def debug(self, *arg, **kwargs):
         """返回调试信息"""
         self.logger.debug(*arg, **kwargs)
+

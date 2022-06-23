@@ -4,7 +4,6 @@ from web.uilts.logger import Log
 import pymysql
 
 from dbutils.persistent_db import PersistentDB
-from dbutils.pooled_db import PooledDB
 
 mysqlSettings = Config.get_Sqlsettins()
 TEXT_DB = {"host": mysqlSettings.host, "port": 3306, "user": mysqlSettings.user, "password": mysqlSettings.password,

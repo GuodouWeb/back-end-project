@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u+0!4^ves95hhx9e^pq2z=+^dhtqob65a-tg&u-%7&le0*9if!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -103,7 +103,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 try:
-    from web.locatsettings import *
+    from web.locatsettings import DATABASES
 except ImportError:
     pass
 # Internationalization
