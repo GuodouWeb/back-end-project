@@ -28,13 +28,15 @@ def login(request):
         # user_object=models.UserInfo.objects.filter(username=username,password=password).exists()
         # 手机=phone and pwd=pwd  || email=email and pwd=pwd
         user_object = models.User.objects.filter(username=username, password=password).first()
-        if user_object:
-            user_info = model_to_dict(user_object)
-            jwt = UserToken.get_token(user_info)
-            refreshToken = UserToken.add_salt(user_object.username + str(time.time()))
-            return HttpResponse(
-                json.dumps({'code': 200, 'token': jwt, 'data': {'userinfo': user_info, 'refToken': refreshToken}}),
-                content_type="application/json;charset=UTF-8")
+        if not user_object:
+            return HttpResponse(json.dumps({'code': 404, 'msg': '账号密码错误'}), content_type="application/json;charset"
+                                                                                         "=UTF-8")
+        user_info = model_to_dict(user_object)
+        jwt = UserToken.get_token(user_info)
+        refreshToken = UserToken.add_salt(user_object.username + str(time.time()))
+        return HttpResponse(
+            json.dumps({'code': 200, 'token': jwt, 'data': {'userinfo': user_info, 'refToken': refreshToken}}),
+            content_type="application/json;charset=UTF-8")
 
     return HttpResponse(json.dumps({'code': 404, 'msg': '请求方式问题'}), content_type="application/json;charset"
                                                                                  "=UTF-8")

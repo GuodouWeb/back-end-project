@@ -7,6 +7,7 @@ from web.uilts.Jwt import UserToken
 FORBIDDEN = "对不起, 你没有足够的权限"
 
 TOKEN_WHITELIST = [
+    '/chat/',
     '/api/login',
     '/api/user/register',
     '/api/get_userinfo',
@@ -23,6 +24,8 @@ class Permission(MiddlewareMixin):
 
     def process_request(self, request):
         try:
+            if 'chat' in request.path_info:
+                return
             if request.path_info in TOKEN_WHITELIST:
                 return
             headers = request.headers

@@ -21,7 +21,7 @@ class Request(object):
     def get_elapsed(timer: datetime.timedelta):
         if timer.seconds > 0:
             return f"{timer.seconds}.{timer.microseconds // 1000}s"
-        return f"{timer.microseconds // 100}ms"
+        return f"{timer.microseconds // 1000}ms"
 
     def request(self, method: str):
         status_code = 0
@@ -36,7 +36,7 @@ class Request(object):
             status_code = response.status_code
             if status_code != 200:
                 return Request.response(False, status_code)
-            elapsed = str(int(response.elapsed.microseconds/1000))+"ms"
+            elapsed = Request.get_elapsed(response.elapsed)
             data = self.get_response(response)
             return Request.response(True, 200, data, response.headers, response.request.headers, elapsed=elapsed,
                                     cookies=response.cookies)
