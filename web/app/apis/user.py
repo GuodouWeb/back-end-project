@@ -11,9 +11,11 @@ from web.locatsettings import Config
 
 def login(request):
     if request.method == 'POST':
-        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+        data = None
+        content_type = request.headers.get('Content-Type')
+        if 'x-www-form-urlencoded' in content_type and request.POST:
             data = request.POST
-        if request.headers.get('Content-Type') == 'application/json':
+        if 'application/json' in content_type and request.body:
             data = json.loads(request.body)
         if data is None:
             return HttpResponse(json.dumps({'code': 500, 'msg': '无法获取数据'}),
