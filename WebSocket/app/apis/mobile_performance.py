@@ -31,7 +31,7 @@ class MobilePerformanceConsumer(WebsocketConsumer):
                 obj=self
             ))
             if not self.obj:
-                self.obj = Producer('producer')
+                self.obj = Producer('producer', self.room_name, self.pkgname)
         self.room_group_name = 'chat_%s' % self.room_name
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name,
@@ -50,13 +50,6 @@ class MobilePerformanceConsumer(WebsocketConsumer):
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-        device = message.get('device')
-        pkgname = message.get('pkgname')
-        deviceId = d.getIdbyDevice(device)
-        pid = d.getPid(deviceId=deviceId, pkgName=pkgname)
-        if pid:
-            self.cpu = CPU(pkgName=pkgname, deviceId=deviceId)
-        # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -70,12 +63,17 @@ class MobilePerformanceConsumer(WebsocketConsumer):
         message = event['message']
         try:
             if message.get("stop"):
-                for i in client:
-                    if self.scope['client'][1] == i.get('client'):
-                        client.remove(i.get('client'))
-                        return
-            if not self.obj:
-                self.obj = Producer('producer')
+                if len(client)<2:
+                    self.obj.join()
+                    client.remove(self.scope['client'][1])
+                    self.obj = None
+                    return
+                client.remove(self.scope['client'][1])
+                return
+            if not self.obj or self.obj is None:
+                device = message.get('device')
+                pkgname = message.get('pkgname')
+                self.obj = Producer('producer', device, pkgname)
                 self.obj.start()
             if not self.obj.is_alive():
                 self.obj.start()
@@ -84,23 +82,33 @@ class MobilePerformanceConsumer(WebsocketConsumer):
 
 
 class Producer(threading.Thread):
-    device = '3c2691fe'
-    pkgname = "com.qiyi.video"
-    deviceId = d.getIdbyDevice(device)
-    pid = d.getPid(deviceId=deviceId, pkgName=pkgname)
-    cpu = None
-    if pid:
-        cpu = CPU(pkgName=pkgname, deviceId=deviceId)
-        fps_monitor = FPS(pkgName=pkgname, deviceId=deviceId)
 
-    def __init__(self, name):
+    def __init__(self, name, device, pkgname):
         super().__init__(name=name)
+        self.device = device
+        self.pkgname = pkgname
+        self.create_performance_data(pkgname, d.getIdbyDevice(device))
         self.value = 0
 
+    def create_performance_data(self, pkgname, deviceId):
+        pid = d.getPid(deviceId=deviceId, pkgName=pkgname)
+        if pid:
+            self.cpu = CPU(pkgName=pkgname, deviceId=deviceId)
+            self.fps_monitor = FPS(pkgName=pkgname, deviceId=deviceId)
+            return
+        return False
+
     def run(self):
-        while True:
-            result = f"cpu: {self.cpu.getSingCpuRate()}; fps: {self.fps_monitor.getFPS()}"
+        try:
+            while True:
+                result = f"cpu: {self.cpu.getSingCpuRate()}; fps: {self.fps_monitor.getFPS()}"
+                for i in client:
+                    i.get('obj').send(text_data=json.dumps({
+                        'message': result
+                    }))
+        except:
             for i in client:
                 i.get('obj').send(text_data=json.dumps({
-                    'message': result
+                    'message': '当前设备性能数据获取失败，尝试连接设备重新获取数据。',
                 }))
+            self.create_performance_data(self.pkgname, d.getIdbyDevice(self.device))

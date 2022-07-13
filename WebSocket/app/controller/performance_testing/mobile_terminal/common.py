@@ -30,13 +30,21 @@ class Devices:
         devices_name = os.popen(f'{self.adb} -s {deviceId} shell getprop ro.product.model').readlines()
         return devices_name[0].strip()
 
-    def getDevices(self):
+    def getDevicesAndName(self):
         """获取所有设备"""
         Devices = []
         DeviceIds = self.getDeviceIds()
         for id in DeviceIds:
             devices_name = self.getDevicesName(id)
             Devices.append(f'{id}({devices_name})')
+        return Devices
+
+    def getDevices(self):
+        """获取所有设备"""
+        Devices = []
+        DeviceIds = self.getDeviceIds()
+        for id in DeviceIds:
+            Devices.append(f'{id}')
         return Devices
 
     def getIdbyDevice(self, deviceinfo):

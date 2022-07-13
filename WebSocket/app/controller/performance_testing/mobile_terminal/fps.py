@@ -1,4 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
+import asyncio
 import datetime
 import queue
 import re
@@ -6,7 +7,7 @@ import threading
 import time
 import traceback
 from logzero import logger
-from WebSocket.app.controller.performance_testing.mobile_terminal.ADB import adb
+from .ADB import adb
 collect_fps = 0
 collect_jank = 0
 

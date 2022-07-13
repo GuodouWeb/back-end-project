@@ -1,13 +1,13 @@
+import asyncio
 import datetime
 import platform
 import re
-import time
 from functools import reduce
 from logzero import logger
 
-from WebSocket.app.controller.performance_testing.mobile_terminal.ADB import adb
-from WebSocket.app.controller.performance_testing.mobile_terminal.common import Devices, file
-from WebSocket.app.controller.performance_testing.mobile_terminal.fps import FPSMonitor, TimeUtils
+from .ADB import adb
+from .common import Devices, file
+from .fps import FPSMonitor, TimeUtils
 
 d = Devices()
 
@@ -42,15 +42,14 @@ class CPU:
         totalCpu = float(reduce(lambda x, y: int(x) + int(y), toks))
         return totalCpu
 
-    def getSingCpuRate(self):
+    async def getSingCpuRate(self):
         """获取进程损耗cpu的占比%"""
         processCpuTime_1 = self.getprocessCpuStat()
         totalCpuTime_1 = self.getTotalCpuStat()
         processCpuTime_2 = self.getprocessCpuStat()
         totalCpuTime_2 = self.getTotalCpuStat()
         cpuRate = int((processCpuTime_2 - processCpuTime_1) / (totalCpuTime_2 - totalCpuTime_1) * 100)
-        with open(f'{file().report_dir}/cpu.log', 'a+') as f:
-            f.write(f'{self.apm_time}={str(cpuRate)}' + '\n')
+        await asyncio.sleep(0.01)
         return cpuRate
 
 
@@ -81,7 +80,7 @@ class Battery:
         self.deviceId = deviceId
         self.apm_time = datetime.datetime.now().strftime('%H:%M:%S.%f')
 
-    def getBattery(self):
+    async def getBattery(self):
         """获取手机电量"""
         # 切换手机电池为非充电状态
         cmd = 'dumpsys battery set status 1'
@@ -90,8 +89,7 @@ class Battery:
         cmd = 'dumpsys battery'
         output = adb.shell(cmd=cmd, deviceId=self.deviceId)
         battery = int(re.findall(u'level:\s?(\d+)', output)[0])
-        with open(f'{file().report_dir}/battery.log', 'a+') as f:
-            f.write(f'{self.apm_time}={str(battery)}' + '\n')
+        await asyncio.sleep(0.01)
         return battery
 
 
@@ -102,7 +100,7 @@ class Flow:
         self.deviceId = deviceId
         self.apm_time = datetime.datetime.now().strftime('%H:%M:%S.%f')
 
-    def getUpFlow(self):
+    async def getUpFlow(self):
         """获取上行流量，单位MB"""
         pid = d.getPid(pkgName=self.pkgName, deviceId=self.deviceId)
         if platform.system() != 'Windows':
@@ -112,14 +110,11 @@ class Flow:
         output = adb.shell(cmd=cmd, deviceId=self.deviceId)
         m = re.search(r'wlan0:\s*(\d+)\s*\d+\s*\d+\s*\d+\s*\d+\s*\d+\s*\d+\s*\d+\s*(\d+)', output)
         if m:
-            sendNum = round(float(float(m.group(2)) / 1024 / 1024), 2)
+            return round(float(float(m.group(2)) / 1024 / 1024), 2)
         else:
             logger.error("Couldn't get rx and tx data from: %s!" % output)
-        with open(f'{file().report_dir}/upflow.log', 'a+') as f:
-            f.write(f'{self.apm_time}={str(sendNum)}' + '\n')
-        return sendNum
 
-    def getDownFlow(self):
+    async def getDownFlow(self):
         """获取下行流量，单位MB"""
         pid = d.getPid(pkgName=self.pkgName, deviceId=self.deviceId)
         if platform.system() != 'Windows':
@@ -129,12 +124,10 @@ class Flow:
         output = adb.shell(cmd=cmd, deviceId=self.deviceId)
         m = re.search(r'wlan0:\s*(\d+)\s*\d+\s*\d+\s*\d+\s*\d+\s*\d+\s*\d+\s*\d+\s*(\d+)', output)
         if m:
-            recNum = round(float(float(m.group(1)) / 1024 / 1024), 2)
+            return round(float(float(m.group(1)) / 1024 / 1024), 2)
         else:
             logger.error("Couldn't get rx and tx data from: %s!" % output)
-        with open(f'{file().report_dir}/downflow.log', 'a+') as f:
-            f.write(f'{self.apm_time}={str(recNum)}' + '\n')
-        return recNum
+
 
 
 class FPS:
@@ -144,15 +137,12 @@ class FPS:
         self.deviceId = deviceId
         self.apm_time = datetime.datetime.now().strftime('%H:%M:%S.%f')
 
-    def getFPS(self):
+    async def getFPS(self):
         monitors = FPSMonitor(device_id=self.deviceId, package_name=self.pkgName, frequency=1,
                               start_time=TimeUtils.getCurrentTimeUnderline())
         monitors.start()
         collects_fps, collects_jank = monitors.stop()
-        with open(f'{file().report_dir}/fps.log', 'a+') as f:
-            f.write(f'{self.apm_time}={str(collects_fps)}' + '\n')
-        with open(f'{file().report_dir}/jank.log', 'a+') as f:
-            f.write(f'{self.apm_time}={str(collects_jank)}' + '\n')
+        await asyncio.sleep(0.01)
         return collects_fps, collects_jank
 
 

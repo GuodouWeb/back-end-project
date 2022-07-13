@@ -27,5 +27,11 @@ def request(request):
             r = Request(url, data=body, headers=headers)
         response = r.request(method)
         if response.get('status'):
-            return HttpResponse(json.dumps(dict(code=0, data=response, msg='操作成功')), headers={"Content-Type": "application/json; charset=utf-8"})
-        return HttpResponse(json.dumps(dict(code=110, data=response, msg=response.get('msg'))), headers={"Content-Type": "application/json; charset=utf-8"})
+            return HttpResponse(json.dumps(dict(
+                code=0,
+                data=response,
+                msg='操作成功')), headers={"Content-Type": "application/json; charset=utf-8"})
+        return HttpResponse(json.dumps(dict(
+            code=110,
+            data=response,
+            msg=response.get('msg'))), headers={"Content-Type": "application/json; charset=utf-8"})

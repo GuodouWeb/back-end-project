@@ -1,7 +1,4 @@
-# chat/consumers.py
 import json
-
-
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -41,8 +38,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Receive message from room group
     async def chat_message(self, event):
         message = event['message']
+
         # Send message to WebSocket
-        for i in range(0, 10):
-            await self.send(text_data=json.dumps({
-                'message': f'收到消息，这是给你回的第{i}条消息'
-            }))
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))

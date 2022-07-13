@@ -3,7 +3,7 @@
 from django.urls import re_path
 
 from . import consumers
-from WebSocket.app.view.mobile_performance import MobilePerformanceConsumer
+from WebSocket.app.apis.mobile_performance import MobilePerformanceConsumer
 
 websocket_urlpatterns = [
     re_path(r'ws/chat/(?P<room_name>\w+)/$', consumers.ChatConsumer.as_asgi()),
