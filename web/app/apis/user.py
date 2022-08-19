@@ -4,7 +4,7 @@ import time
 import pymysql
 from django.forms import model_to_dict
 from django.http import HttpResponse
-from web.app.models import models
+from web.app.models.users.user import User
 from web.uilts.Jwt import UserToken
 from web.locatsettings import Config
 
@@ -29,7 +29,7 @@ def login(request):
                                              "=UTF-8")
         # user_object=models.UserInfo.objects.filter(username=username,password=password).exists()
         # 手机=phone and pwd=pwd  || email=email and pwd=pwd
-        user_object = models.User.objects.filter(username=username, password=password).first()
+        user_object = User.objects.filter(username=username, password=password).first()
         if not user_object:
             return HttpResponse(json.dumps({'code': 404, 'msg': '账号密码错误'}), content_type="application/json;charset"
                                                                                          "=UTF-8")
@@ -55,11 +55,11 @@ def register(request):
                 return HttpResponse(json.dumps({'code': 404, 'msg': '注册的账号密码不能为空'}),
                                     content_type="application/json;charset"
                                                  "=UTF-8")
-            user_object = models.User.objects.filter(username=username).first()
+            user_object = User.objects.filter(username=username).first()
             if user_object:
                 return HttpResponse(json.dumps({'code': 404, 'msg': "用户名已存在"}),
                                     content_type="application/json;charset=UTF-8")
-            user_object = models.User.objects.create(
+            user_object = User.objects.create(
                 name=name,
                 username=username,
                 password=password,
