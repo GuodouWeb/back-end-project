@@ -554,7 +554,7 @@ class FPSMonitor(Monitor):
 
 
 if __name__ == '__main__':
-    monitor = FPSMonitor(device_id='3c2691fe', package_name="com.qiyi.video", frequency=1, start_time=TimeUtils.getCurrentTimeUnderline())
+    monitor = FPSMonitor(device_id='3c2691fe', package_name="com.yx.capricorn.meian20220819", frequency=1, start_time=TimeUtils.getCurrentTimeUnderline())
     monitor.start()
     for i in range(1, 100):
         print(collect_fps)

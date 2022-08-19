@@ -57,6 +57,12 @@ class MEM:
         self.deviceId = deviceId
         self.apm_time = datetime.datetime.now().strftime('%H:%M:%S.%f')
 
+    def getDeviceMem(self):
+        resule = adb.shell("procrank", self.deviceId)
+        resule = resule.split('\r\n')
+        mem = resule[3][6:resule[3].rfind("total", 1)-2]
+        return int(int(mem)/1024)
+
     def getProcessMem(self):
         """获取进程内存Total、NativeHeap、NativeHeap;单位MB"""
         pid = d.getPid(pkgName=self.pkgName, deviceId=self.deviceId)
@@ -147,5 +153,5 @@ class FPS:
 
 
 if __name__ == '__main__':
-    fps = FPS("com.qiyi.video", '3c2691fe')
-    print(fps.getFPS())
+    mem = MEM("com.qiyi.video", '3c2691fe')
+    print(mem.getProcessMem())

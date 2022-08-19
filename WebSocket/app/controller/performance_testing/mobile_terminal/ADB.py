@@ -8,6 +8,7 @@
 """
 import os
 import platform
+import re
 import stat
 import subprocess
 
@@ -74,3 +75,6 @@ class ADB(object):
 
 
 adb = ADB()
+a = " RAM: 11470448K total, 735976K free, 5780K buffers, 3764604K cached, 80884K shmem, 640472K slab"
+b = a[6:a.rfind("total", 1)-2]
+print(b)
